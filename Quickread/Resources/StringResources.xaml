@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+                    xml:space="preserve">
+
+    <!-- Allgemeine UI-Texte -->
+    <sys:String x:Key="AppTitle">QuickRead</sys:String>
+    <sys:String x:Key="Home">Startseite</sys:String>
+    <sys:String x:Key="Library">Bibliothek</sys:String>
+    <sys:String x:Key="Settings">Einstellungen</sys:String>
+    <sys:String x:Key="Language">Sprache</sys:String>
+    <sys:String x:Key="ReaderMode">Lesemodus</sys:String>
+    <sys:String x:Key="Download">Herunterladen</sys:String>
+    <sys:String x:Key="Read">Lesen</sys:String>
+    <sys:String x:Key="Close">Schließen</sys:String>
+
+    <!-- Info & Footer -->
+    <sys:String x:Key="CreatedBy">Erstellt von Gamecrasher007</sys:String>
+    <sys:String x:Key="Contact">Kontakt: animesucht6@gmail.com</sys:String>
+    <sys:String x:Key="MangaLove">Ich liebe Manga, weil sie mich in andere Welten entführen!</sys:String>
+
+</ResourceDictionary>
