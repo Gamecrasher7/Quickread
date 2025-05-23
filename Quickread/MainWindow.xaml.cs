@@ -218,7 +218,11 @@ namespace QuickRead
 
         private void SetStatus(string message)
         {
-            StatusText.Text = message;
+            if (StatusText != null)
+            {
+                StatusText.Text = message;
+            }
         }
+
     }
 }
