@@ -28,7 +28,7 @@
                            x:Name="SearchPlaceholder"/>
 			</Grid>
 
-			<ComboBox x:Name="SourceComboBox" Width="150" Margin="0,0,10,0" Height="30">
+			<ComboBox x:Name="SourceComboBox" Width="150" Margin="0,0,10,0" Height="30" SelectionChanged="SourceComboBox_SelectionChanged" Background="#FFFBFBFB" Foreground="#FFF70707">
 				<ComboBoxItem Content="Comick" IsSelected="True"/>
 				<ComboBoxItem Content="MangaPark"/>
 			</ComboBox>

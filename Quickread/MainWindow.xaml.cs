@@ -224,5 +224,9 @@ namespace QuickRead
             }
         }
 
+        private void SourceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
     }
 }
