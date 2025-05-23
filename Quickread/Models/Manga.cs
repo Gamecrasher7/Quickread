@@ -2,11 +2,11 @@ namespace QuickRead.Models
 {
     public class Manga
     {
-        public string Title { get; set; }
-        public string Url { get; set; }
-        public string CoverImageUrl { get; set; }
-        public string Description { get; set; }
-        public string Source { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Url { get; set; } = string.Empty;
+        public string CoverImageUrl { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Source { get; set; } = string.Empty;
 
         public override string ToString()
         {

@@ -4,20 +4,113 @@
                     xmlns:sys="clr-namespace:System;assembly=mscorlib"
                     xml:space="preserve">
 
-    <!-- Allgemeine UI-Texte -->
+    <!-- Application Title -->
     <sys:String x:Key="AppTitle">QuickRead</sys:String>
-    <sys:String x:Key="Home">Startseite</sys:String>
-    <sys:String x:Key="Library">Bibliothek</sys:String>
-    <sys:String x:Key="Settings">Einstellungen</sys:String>
-    <sys:String x:Key="Language">Sprache</sys:String>
-    <sys:String x:Key="ReaderMode">Lesemodus</sys:String>
-    <sys:String x:Key="Download">Herunterladen</sys:String>
-    <sys:String x:Key="Read">Lesen</sys:String>
-    <sys:String x:Key="Close">Schließen</sys:String>
-
-    <!-- Info & Footer -->
-    <sys:String x:Key="CreatedBy">Erstellt von Gamecrasher007</sys:String>
-    <sys:String x:Key="Contact">Kontakt: animesucht6@gmail.com</sys:String>
-    <sys:String x:Key="MangaLove">Ich liebe Manga, weil sie mich in andere Welten entführen!</sys:String>
+    
+    <!-- Main Navigation -->
+    <sys:String x:Key="Home">Home</sys:String>
+    <sys:String x:Key="Library">Library</sys:String>
+    <sys:String x:Key="Settings">Settings</sys:String>
+    <sys:String x:Key="Language">Language</sys:String>
+    
+    <!-- Search & Browse -->
+    <sys:String x:Key="Search">Search</sys:String>
+    <sys:String x:Key="SearchManga">Search Manga...</sys:String>
+    <sys:String x:Key="SearchResults">Search Results</sys:String>
+    <sys:String x:Key="NoResults">No results found</sys:String>
+    <sys:String x:Key="Source">Source</sys:String>
+    
+    <!-- Manga & Chapters -->
+    <sys:String x:Key="Manga">Manga</sys:String>
+    <sys:String x:Key="Chapters">Chapters</sys:String>
+    <sys:String x:Key="Chapter">Chapter</sys:String>
+    <sys:String x:Key="Pages">Pages</sys:String>
+    <sys:String x:Key="Page">Page</sys:String>
+    <sys:String x:Key="Latest">Latest</sys:String>
+    <sys:String x:Key="Popular">Popular</sys:String>
+    
+    <!-- Reader -->
+    <sys:String x:Key="ReaderMode">Reader Mode</sys:String>
+    <sys:String x:Key="Read">Read</sys:String>
+    <sys:String x:Key="NextPage">Next Page</sys:String>
+    <sys:String x:Key="PrevPage">Previous Page</sys:String>
+    <sys:String x:Key="NextChapter">Next Chapter</sys:String>
+    <sys:String x:Key="PrevChapter">Previous Chapter</sys:String>
+    <sys:String x:Key="ZoomIn">Zoom In</sys:String>
+    <sys:String x:Key="ZoomOut">Zoom Out</sys:String>
+    <sys:String x:Key="FitWidth">Fit Width</sys:String>
+    <sys:String x:Key="FitHeight">Fit Height</sys:String>
+    <sys:String x:Key="OriginalSize">Original Size</sys:String>
+    
+    <!-- Actions -->
+    <sys:String x:Key="Download">Download</sys:String>
+    <sys:String x:Key="Bookmark">Bookmark</sys:String>
+    <sys:String x:Key="Share">Share</sys:String>
+    <sys:String x:Key="Close">Close</sys:String>
+    <sys:String x:Key="Cancel">Cancel</sys:String>
+    <sys:String x:Key="OK">OK</sys:String>
+    <sys:String x:Key="Apply">Apply</sys:String>
+    <sys:String x:Key="Reset">Reset</sys:String>
+    
+    <!-- Status Messages -->
+    <sys:String x:Key="Ready">Ready</sys:String>
+    <sys:String x:Key="Loading">Loading...</sys:String>
+    <sys:String x:Key="Searching">Searching...</sys:String>
+    <sys:String x:Key="LoadingChapters">Loading chapters...</sys:String>
+    <sys:String x:Key="LoadingPages">Loading pages...</sys:String>
+    <sys:String x:Key="Error">Error</sys:String>
+    <sys:String x:Key="Success">Success</sys:String>
+    <sys:String x:Key="Warning">Warning</sys:String>
+    <sys:String x:Key="Information">Information</sys:String>
+    
+    <!-- Error Messages -->
+    <sys:String x:Key="ErrorOccurred">An error occurred</sys:String>
+    <sys:String x:Key="NetworkError">Network error occurred</sys:String>
+    <sys:String x:Key="LoadingError">Failed to load content</sys:String>
+    <sys:String x:Key="SearchError">Search failed</sys:String>
+    <sys:String x:Key="InvalidInput">Invalid input</sys:String>
+    <sys:String x:Key="NoInternet">No internet connection</sys:String>
+    
+    <!-- Languages -->
+    <sys:String x:Key="English">English</sys:String>
+    <sys:String x:Key="German">Deutsch</sys:String>
+    <sys:String x:Key="Japanese">日本語</sys:String>
+    <sys:String x:Key="Korean">한국어</sys:String>
+    <sys:String x:Key="Chinese">中文</sys:String>
+    <sys:String x:Key="French">Français</sys:String>
+    <sys:String x:Key="Spanish">Español</sys:String>
+    
+    <!-- Sources -->
+    <sys:String x:Key="Comick">Comick</sys:String>
+    <sys:String x:Key="MangaPark">MangaPark</sys:String>
+    
+    <!-- UI Elements -->
+    <sys:String x:Key="ToggleUI">Toggle UI</sys:String>
+    <sys:String x:Key="FullScreen">Full Screen</sys:String>
+    <sys:String x:Key="ExitFullScreen">Exit Full Screen</sys:String>
+    <sys:String x:Key="ShowMenu">Show Menu</sys:String>
+    <sys:String x:Key="HideMenu">Hide Menu</sys:String>
+    
+    <!-- Progress & Statistics -->
+    <sys:String x:Key="Progress">Progress</sys:String>
+    <sys:String x:Key="Complete">Complete</sys:String>
+    <sys:String x:Key="Incomplete">Incomplete</sys:String>
+    <sys:String x:Key="Total">Total</sys:String>
+    <sys:String x:Key="Remaining">Remaining</sys:String>
+    
+    <!-- About & Info -->
+    <sys:String x:Key="About">About</sys:String>
+    <sys:String x:Key="Version">Version</sys:String>
+    <sys:String x:Key="CreatedBy">Created by Gamecrasher007</sys:String>
+    <sys:String x:Key="Contact">Contact: animesucht6@gmail.com</sys:String>
+    <sys:String x:Key="MangaLove">I love manga because it takes me to other worlds!</sys:String>
+    <sys:String x:Key="Copyright">© 2024 QuickRead. All rights reserved.</sys:String>
+    
+    <!-- Tooltips -->
+    <sys:String x:Key="SearchTooltip">Enter manga title to search</sys:String>
+    <sys:String x:Key="SourceTooltip">Select manga source</sys:String>
+    <sys:String x:Key="LanguageTooltip">Select interface language</sys:String>
+    <sys:String x:Key="ZoomTooltip">Zoom in/out of the image</sys:String>
+    <sys:String x:Key="NavigationTooltip">Navigate between pages</sys:String>
 
 </ResourceDictionary>

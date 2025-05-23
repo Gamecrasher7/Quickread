@@ -1,18 +1,32 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using QuickRead.Models;
+using QuickRead.Sources;
 
 namespace QuickRead
 {
     public partial class MainWindow : Window
     {
         private DispatcherTimer spinnerTimer;
+        private readonly Dictionary<string, ISourceService> _sources;
+        private List<Manga> _currentMangaList = new();
+        private List<Chapter> _currentChapterList = new();
 
         public MainWindow()
         {
             InitializeComponent();
+
+            // Initialize services
+            _sources = new Dictionary<string, ISourceService>
+            {
+                { "Comick", new ComickService() },
+                { "MangaPark", new MangaparkService() }
+            };
 
             // Placeholder-Text verstecken, wenn TextBox gefüllt ist
             SearchBox.TextChanged += SearchBox_TextChanged;
@@ -61,7 +75,7 @@ namespace QuickRead
             else spinnerTimer.Stop();
         }
 
-        private void SearchButton_Click(object sender, RoutedEventArgs e)
+        private async void SearchButton_Click(object sender, RoutedEventArgs e)
         {
             var query = SearchBox.Text.Trim();
             if (string.IsNullOrEmpty(query))
@@ -70,17 +84,41 @@ namespace QuickRead
                 return;
             }
 
-            SetStatus($"Searching for \"{query}\" in {((ComboBoxItem)SourceComboBox.SelectedItem).Content}...");
+            var selectedSource = ((ComboBoxItem)SourceComboBox.SelectedItem).Content.ToString();
+            SetStatus($"Searching for \"{query}\" in {selectedSource}...");
             ShowLoading(true);
 
-            // Beispiel: Async Suche simulieren (hier ersetzt du mit deinem Suchcode)
-            Dispatcher.BeginInvoke(new Action(() =>
+            try
             {
-                // TODO: Hier tatsächliche Suche starten
+                if (_sources.TryGetValue(selectedSource, out var service))
+                {
+                    _currentMangaList = await service.SearchMangaAsync(query);
 
+                    // Update UI on main thread
+                    Dispatcher.Invoke(() =>
+                    {
+                        MangaList.ItemsSource = null;
+                        MangaList.ItemsSource = _currentMangaList;
+
+                        // Clear chapter list
+                        ChapterList.ItemsSource = null;
+                        _currentChapterList.Clear();
+
+                        ShowLoading(false);
+                        SetStatus($"Found {_currentMangaList.Count} results for \"{query}\".");
+                    });
+                }
+                else
+                {
+                    ShowLoading(false);
+                    SetStatus("Unknown source selected.");
+                }
+            }
+            catch (Exception ex)
+            {
                 ShowLoading(false);
-                SetStatus($"Search finished. Results for \"{query}\".");
-            }), DispatcherPriority.Background);
+                SetStatus($"Error during search: {ex.Message}");
+            }
         }
 
         private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -90,18 +128,92 @@ namespace QuickRead
                 string lang = selected.Tag.ToString();
                 SetStatus($"Language changed to {selected.Content} ({lang}).");
 
-                // TODO: Sprachwechsel-Logik hier implementieren
+                // Filter current chapter list by language if available
+                if (_currentChapterList.Any())
+                {
+                    var filteredChapters = _currentChapterList.Where(c =>
+                        string.IsNullOrEmpty(c.Language) || c.Language == lang).ToList();
+                    ChapterList.ItemsSource = null;
+                    ChapterList.ItemsSource = filteredChapters;
+                }
             }
         }
 
-        private void MangaList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void MangaList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // TODO: Manga Auswahl behandeln
+            if (MangaList.SelectedItem is Manga selectedManga)
+            {
+                SetStatus($"Loading chapters for {selectedManga.Title}...");
+                ShowLoading(true);
+
+                try
+                {
+                    var selectedSource = ((ComboBoxItem)SourceComboBox.SelectedItem).Content.ToString();
+                    if (_sources.TryGetValue(selectedSource, out var service))
+                    {
+                        _currentChapterList = await service.GetChaptersAsync(selectedManga);
+
+                        // Filter by selected language
+                        var selectedLang = ((ComboBoxItem)LanguageComboBox.SelectedItem).Tag.ToString();
+                        var filteredChapters = _currentChapterList.Where(c =>
+                            string.IsNullOrEmpty(c.Language) || c.Language == selectedLang).ToList();
+
+                        Dispatcher.Invoke(() =>
+                        {
+                            ChapterList.ItemsSource = null;
+                            ChapterList.ItemsSource = filteredChapters;
+
+                            ShowLoading(false);
+                            SetStatus($"Loaded {filteredChapters.Count} chapters for {selectedManga.Title}.");
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ShowLoading(false);
+                    SetStatus($"Error loading chapters: {ex.Message}");
+                }
+            }
         }
 
-        private void ChapterList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void ChapterList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // TODO: Chapter Auswahl behandeln
+            if (ChapterList.SelectedItem is Chapter selectedChapter)
+            {
+                SetStatus($"Loading pages for {selectedChapter.Title}...");
+                ShowLoading(true);
+
+                try
+                {
+                    var selectedSource = ((ComboBoxItem)SourceComboBox.SelectedItem).Content.ToString();
+                    if (_sources.TryGetValue(selectedSource, out var service))
+                    {
+                        var pageImages = await service.GetPageImagesAsync(selectedChapter);
+
+                        if (pageImages.Any())
+                        {
+                            Dispatcher.Invoke(() =>
+                            {
+                                ShowLoading(false);
+                                SetStatus($"Opening reader with {pageImages.Count} pages...");
+
+                                var readerWindow = new ReaderWindow(pageImages);
+                                readerWindow.Show();
+                            });
+                        }
+                        else
+                        {
+                            ShowLoading(false);
+                            SetStatus("No pages found for this chapter.");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ShowLoading(false);
+                    SetStatus($"Error loading pages: {ex.Message}");
+                }
+            }
         }
 
         private void SetStatus(string message)
