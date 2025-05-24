@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Threading.Tasks;
 
 namespace QuickRead
 {
@@ -21,7 +22,7 @@ namespace QuickRead
 
             if (_imageUrls.Any())
             {
-                LoadImage();
+                LoadImageAsync().ConfigureAwait(false);
                 Title = $"Reader - Page {_currentIndex + 1} of {_imageUrls.Count}";
             }
             else
@@ -40,19 +41,19 @@ namespace QuickRead
             {
                 case Key.Left:
                 case Key.A:
-                    Prev_Click(null, null);
+                    Prev_Click(this, new RoutedEventArgs());
                     break;
                 case Key.Right:
                 case Key.D:
-                    Next_Click(null, null);
+                    Next_Click(this, new RoutedEventArgs());
                     break;
                 case Key.Add:
                 case Key.OemPlus:
-                    ZoomIn_Click(null, null);
+                    ZoomIn_Click(this, new RoutedEventArgs());
                     break;
                 case Key.Subtract:
                 case Key.OemMinus:
-                    ZoomOut_Click(null, null);
+                    ZoomOut_Click(this, new RoutedEventArgs());
                     break;
                 case Key.Escape:
                     Close();
@@ -77,7 +78,7 @@ namespace QuickRead
             }
         }
 
-        private async void LoadImage()
+             private async Task LoadImageAsync()
         {
             if (_imageUrls == null || !_imageUrls.Any() || _currentIndex < 0 || _currentIndex >= _imageUrls.Count)
                 return;
@@ -104,26 +105,26 @@ namespace QuickRead
                 if (_currentIndex < _imageUrls.Count - 1)
                 {
                     _currentIndex++;
-                    LoadImage();
+                    await LoadImageAsync();
                 }
             }
         }
 
-        private void Prev_Click(object sender, RoutedEventArgs e)
+        private async void Prev_Click(object sender, RoutedEventArgs e)
         {
             if (_currentIndex > 0)
             {
                 _currentIndex--;
-                LoadImage();
+                await LoadImageAsync();
             }
         }
 
-        private void Next_Click(object sender, RoutedEventArgs e)
+        private async void Next_Click(object sender, RoutedEventArgs e)
         {
             if (_currentIndex < _imageUrls.Count - 1)
             {
                 _currentIndex++;
-                LoadImage();
+                await LoadImageAsync();
             }
         }
 

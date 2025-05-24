@@ -36,9 +36,6 @@ namespace QuickRead.Sources
                 var response = await _http.GetStringAsync(url);
                 Console.WriteLine($"Response length: {response.Length}");
 
-                // Debug: Print first 500 characters of response
-                Console.WriteLine($"Response preview: {response.Substring(0, Math.Min(500, response.Length))}");
-
                 mangas = ParseMangaListFromJson(response);
                 Console.WriteLine($"Parsed {mangas.Count} manga items");
             }
@@ -72,9 +69,6 @@ namespace QuickRead.Sources
 
                 var response = await _http.GetStringAsync(url);
                 Console.WriteLine($"Search response length: {response.Length}");
-
-                // Debug: Print response structure
-                Console.WriteLine($"Search response preview: {response.Substring(0, Math.Min(300, response.Length))}");
 
                 mangas = ParseMangaListFromJson(response);
                 Console.WriteLine($"Found {mangas.Count} mangas");
@@ -119,7 +113,6 @@ namespace QuickRead.Sources
 
                 Console.WriteLine($"JSON ValueKind: {root.ValueKind}");
 
-                // Handle different response structures
                 if (root.ValueKind == JsonValueKind.Array)
                 {
                     Console.WriteLine("Processing direct array response");
@@ -129,7 +122,6 @@ namespace QuickRead.Sources
                         if (manga != null)
                         {
                             mangas.Add(manga);
-                            Console.WriteLine($"Added manga: {manga.Title}");
                         }
                     }
                 }
@@ -137,7 +129,6 @@ namespace QuickRead.Sources
                 {
                     Console.WriteLine("Processing object response, looking for data array");
 
-                    // Try different possible property names
                     string[] possibleArrayProps = { "data", "results", "comics", "manga" };
 
                     foreach (var propName in possibleArrayProps)
@@ -151,14 +142,12 @@ namespace QuickRead.Sources
                                 if (manga != null)
                                 {
                                     mangas.Add(manga);
-                                    Console.WriteLine($"Added manga: {manga.Title}");
                                 }
                             }
                             break;
                         }
                     }
 
-                    // If no array found, check if the root object itself is a manga
                     if (mangas.Count == 0)
                     {
                         Console.WriteLine("Trying to parse root object as single manga");
@@ -175,38 +164,29 @@ namespace QuickRead.Sources
             catch (JsonException jsonEx)
             {
                 Console.WriteLine($"JSON parsing error: {jsonEx.Message}");
-                Console.WriteLine($"JSON Response: {jsonResponse.Substring(0, Math.Min(1000, jsonResponse.Length))}");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error parsing manga list: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
             }
 
             return mangas;
         }
 
-        private Manga ParseSingleMangaFromJson(JsonElement item)
+        private Manga? ParseSingleMangaFromJson(JsonElement item)
         {
             try
             {
-                Console.WriteLine($"Parsing manga item, ValueKind: {item.ValueKind}");
-
                 if (item.ValueKind != JsonValueKind.Object)
                 {
-                    Console.WriteLine("Item is not an object, skipping");
                     return null;
                 }
 
-                // Debug: Print available properties
-                Console.WriteLine("Available properties:");
-                foreach (var prop in item.EnumerateObject())
-                {
-                    Console.WriteLine($"  - {prop.Name}: {prop.Value.ValueKind}");
-                }
+                string? title = null;
+                string? hid = null;
+                string coverUrl = "";
 
-                // Try different possible property names for title
-                string title = null;
+                // Get title
                 string[] titleProps = { "title", "name", "en", "slug" };
                 foreach (var prop in titleProps)
                 {
@@ -215,24 +195,20 @@ namespace QuickRead.Sources
                         if (titleProp.ValueKind == JsonValueKind.String)
                         {
                             title = titleProp.GetString();
-                            Console.WriteLine($"Found title in '{prop}': {title}");
                             break;
                         }
                         else if (titleProp.ValueKind == JsonValueKind.Object && prop == "en")
                         {
-                            // Handle nested title structure
                             if (titleProp.TryGetProperty("title", out var nestedTitle))
                             {
                                 title = nestedTitle.GetString();
-                                Console.WriteLine($"Found nested title: {title}");
                                 break;
                             }
                         }
                     }
                 }
 
-                // Try different possible property names for ID/HID
-                string hid = null;
+                // Get ID
                 string[] idProps = { "hid", "id", "slug", "comic_id" };
                 foreach (var prop in idProps)
                 {
@@ -241,34 +217,29 @@ namespace QuickRead.Sources
                         if (idProp.ValueKind == JsonValueKind.String)
                         {
                             hid = idProp.GetString();
-                            Console.WriteLine($"Found ID in '{prop}': {hid}");
                             break;
                         }
                         else if (idProp.ValueKind == JsonValueKind.Number)
                         {
                             hid = idProp.GetInt32().ToString();
-                            Console.WriteLine($"Found numeric ID in '{prop}': {hid}");
                             break;
                         }
                     }
                 }
 
-                // Try different possible property names for cover
-                string coverUrl = "";
+                // Get cover
                 string[] coverProps = { "cover_url", "cover", "thumbnail", "image", "poster" };
                 foreach (var prop in coverProps)
                 {
                     if (item.TryGetProperty(prop, out var coverProp) && coverProp.ValueKind == JsonValueKind.String)
                     {
                         coverUrl = coverProp.GetString() ?? "";
-                        Console.WriteLine($"Found cover in '{prop}': {coverUrl}");
                         break;
                     }
                 }
 
                 if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(hid))
                 {
-                    Console.WriteLine($"Missing required data - Title: '{title}', HID: '{hid}'");
                     return null;
                 }
 
@@ -280,13 +251,11 @@ namespace QuickRead.Sources
                     Source = Name
                 };
 
-                Console.WriteLine($"Successfully created manga: {manga.Title}");
                 return manga;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error parsing single manga: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return null;
             }
         }
@@ -312,25 +281,11 @@ namespace QuickRead.Sources
                 var chaptersResponse = await _http.GetStringAsync(chaptersUrl);
                 Console.WriteLine($"Chapters response length: {chaptersResponse.Length}");
 
-                // Debug: Print response structure
-                Console.WriteLine($"Chapters response preview: {chaptersResponse.Substring(0, Math.Min(500, chaptersResponse.Length))}");
-
                 using var chaptersJson = JsonDocument.Parse(chaptersResponse);
                 var root = chaptersJson.RootElement;
 
                 Console.WriteLine($"Chapters JSON ValueKind: {root.ValueKind}");
 
-                // Debug: Print available properties
-                if (root.ValueKind == JsonValueKind.Object)
-                {
-                    Console.WriteLine("Available properties in chapters response:");
-                    foreach (var prop in root.EnumerateObject())
-                    {
-                        Console.WriteLine($"  - {prop.Name}: {prop.Value.ValueKind}");
-                    }
-                }
-
-                // Try different possible property names for chapters array
                 string[] chapterProps = { "chapters", "data", "results", "chapter_list" };
                 JsonElement chaptersArray = default;
                 bool foundArray = false;
@@ -356,11 +311,10 @@ namespace QuickRead.Sources
                 {
                     foreach (var chapter in chaptersArray.EnumerateArray())
                     {
-                        var chapterObj = ParseChapterFromJson(chapter);
+                        var chapterObj = ParseChapterFromJson(chapter, hid);
                         if (chapterObj != null)
                         {
                             chapters.Add(chapterObj);
-                            Console.WriteLine($"Added chapter: {chapterObj.Title}");
                         }
                     }
                 }
@@ -369,25 +323,16 @@ namespace QuickRead.Sources
                     Console.WriteLine("No chapters array found in response");
                 }
             }
-            catch (HttpRequestException httpEx)
-            {
-                Console.WriteLine($"HTTP Error in GetChaptersAsync: {httpEx.Message}");
-            }
-            catch (JsonException jsonEx)
-            {
-                Console.WriteLine($"JSON Error in GetChaptersAsync: {jsonEx.Message}");
-            }
             catch (Exception ex)
             {
-                Console.WriteLine($"General Error in GetChaptersAsync: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                Console.WriteLine($"Error in GetChaptersAsync: {ex.Message}");
             }
 
             Console.WriteLine($"Returning {chapters.Count} chapters");
             return chapters.OrderBy(c => c.Title).ToList();
         }
 
-        private Chapter ParseChapterFromJson(JsonElement chapter)
+        private Chapter ParseChapterFromJson(JsonElement chapter, string mangaHid)
         {
             try
             {
@@ -395,15 +340,7 @@ namespace QuickRead.Sources
 
                 if (chapter.ValueKind != JsonValueKind.Object)
                 {
-                    Console.WriteLine("Chapter is not an object, skipping");
                     return null;
-                }
-
-                // Debug: Print available properties
-                Console.WriteLine("Available chapter properties:");
-                foreach (var prop in chapter.EnumerateObject())
-                {
-                    Console.WriteLine($"  - {prop.Name}: {prop.Value.ValueKind}");
                 }
 
                 string chap = GetStringProperty(chapter, new[] { "chap", "chapter", "number" });
@@ -424,7 +361,7 @@ namespace QuickRead.Sources
                 return new Chapter
                 {
                     Title = chapterTitle,
-                    Url = $"{API_BASE}/chapter/{hid}",
+                    Url = hid, // Store just the HID for easier processing later
                     Language = "en"
                 };
             }
@@ -531,36 +468,125 @@ namespace QuickRead.Sources
 
             try
             {
-                var url = chapter.Url;
-                Console.WriteLine($"Fetching page images from: {url}");
+                // The chapter.Url now contains just the HID
+                var chapterHid = chapter.Url;
+                Console.WriteLine($"Getting page images for chapter HID: {chapterHid}");
 
-                var response = await _http.GetStringAsync(url);
-                Console.WriteLine($"Page images response length: {response.Length}");
+                // Try multiple possible endpoints for getting chapter images
+                var possibleUrls = new[]
+                {
+                    $"{API_BASE}/chapter/{chapterHid}",
+                    $"{API_BASE}/v1.0/chapter/{chapterHid}",
+                    $"https://api.comick.cc/chapter/{chapterHid}"
+                };
+
+                string response = null;
+                string workingUrl = null;
+
+                foreach (var url in possibleUrls)
+                {
+                    try
+                    {
+                        Console.WriteLine($"Trying URL: {url}");
+                        response = await _http.GetStringAsync(url);
+                        workingUrl = url;
+                        Console.WriteLine($"Success with URL: {url}, response length: {response.Length}");
+                        break;
+                    }
+                    catch (HttpRequestException httpEx)
+                    {
+                        Console.WriteLine($"Failed with URL {url}: {httpEx.Message}");
+                        continue;
+                    }
+                }
+
+                if (string.IsNullOrEmpty(response))
+                {
+                    Console.WriteLine("No valid response from any URL");
+                    return pages;
+                }
+
+                Console.WriteLine($"Chapter response preview: {response.Substring(0, Math.Min(500, response.Length))}");
 
                 using var json = JsonDocument.Parse(response);
                 var root = json.RootElement;
+
+                Console.WriteLine($"Chapter JSON ValueKind: {root.ValueKind}");
+
+                // Debug: Print available properties
+                if (root.ValueKind == JsonValueKind.Object)
+                {
+                    Console.WriteLine("Available properties in chapter response:");
+                    foreach (var prop in root.EnumerateObject())
+                    {
+                        Console.WriteLine($"  - {prop.Name}: {prop.Value.ValueKind}");
+                    }
+                }
 
                 // Try different structures for images
                 JsonElement imagesArray = default;
                 bool foundImages = false;
 
-                // Try nested structure first
-                if (root.TryGetProperty("chapter", out var chapterData) &&
-                    chapterData.TryGetProperty("images", out imagesArray) &&
-                    imagesArray.ValueKind == JsonValueKind.Array)
+                // Try nested structure first: chapter -> images
+                if (root.TryGetProperty("chapter", out var chapterData))
                 {
-                    foundImages = true;
-                    Console.WriteLine($"Found images in nested structure: {imagesArray.GetArrayLength()} images");
+                    Console.WriteLine("Found 'chapter' property");
+                    if (chapterData.TryGetProperty("images", out imagesArray) && imagesArray.ValueKind == JsonValueKind.Array)
+                    {
+                        foundImages = true;
+                        Console.WriteLine($"Found images in nested structure: {imagesArray.GetArrayLength()} images");
+                    }
+                    else if (chapterData.TryGetProperty("md_images", out imagesArray) && imagesArray.ValueKind == JsonValueKind.Array)
+                    {
+                        foundImages = true;
+                        Console.WriteLine($"Found md_images in nested structure: {imagesArray.GetArrayLength()} images");
+                    }
                 }
+
                 // Try direct images property
-                else if (root.TryGetProperty("images", out imagesArray) && imagesArray.ValueKind == JsonValueKind.Array)
+                if (!foundImages && root.TryGetProperty("images", out imagesArray) && imagesArray.ValueKind == JsonValueKind.Array)
                 {
                     foundImages = true;
                     Console.WriteLine($"Found images in direct structure: {imagesArray.GetArrayLength()} images");
                 }
 
+                // Try md_images property
+                if (!foundImages && root.TryGetProperty("md_images", out imagesArray) && imagesArray.ValueKind == JsonValueKind.Array)
+                {
+                    foundImages = true;
+                    Console.WriteLine($"Found md_images in direct structure: {imagesArray.GetArrayLength()} images");
+                }
+
+                // Try pages property
+                if (!foundImages && root.TryGetProperty("pages", out imagesArray) && imagesArray.ValueKind == JsonValueKind.Array)
+                {
+                    foundImages = true;
+                    Console.WriteLine($"Found pages in direct structure: {imagesArray.GetArrayLength()} images");
+                }
+
                 if (foundImages)
                 {
+                    var baseUrl = "";
+
+                    // Try to get base URL from chapter data
+                    if (root.TryGetProperty("chapter", out var chapterInfo))
+                    {
+                        if (chapterInfo.TryGetProperty("md_images", out var mdImages) && mdImages.ValueKind == JsonValueKind.Object)
+                        {
+                            // This might contain server info
+                            foreach (var server in mdImages.EnumerateObject())
+                            {
+                                if (server.Value.ValueKind == JsonValueKind.Array && server.Value.GetArrayLength() > 0)
+                                {
+                                    imagesArray = server.Value;
+                                    baseUrl = $"https://meo.comick.pictures/{server.Name}/";
+                                    Console.WriteLine($"Using server: {server.Name}, base URL: {baseUrl}");
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
                     foreach (var image in imagesArray.EnumerateArray())
                     {
                         string imageUrl = null;
@@ -571,14 +597,26 @@ namespace QuickRead.Sources
                         }
                         else if (image.ValueKind == JsonValueKind.Object)
                         {
-                            if (image.TryGetProperty("url", out var urlProp))
+                            // Try different property names for image URL
+                            var urlProps = new[] { "url", "src", "link", "image" };
+                            foreach (var prop in urlProps)
                             {
-                                imageUrl = urlProp.GetString();
+                                if (image.TryGetProperty(prop, out var urlProp) && urlProp.ValueKind == JsonValueKind.String)
+                                {
+                                    imageUrl = urlProp.GetString();
+                                    break;
+                                }
                             }
                         }
 
                         if (!string.IsNullOrEmpty(imageUrl))
                         {
+                            // If imageUrl is relative and we have a base URL, combine them
+                            if (!imageUrl.StartsWith("http") && !string.IsNullOrEmpty(baseUrl))
+                            {
+                                imageUrl = baseUrl + imageUrl;
+                            }
+
                             pages.Add(imageUrl);
                             Console.WriteLine($"Added page image: {imageUrl}");
                         }
@@ -600,6 +638,7 @@ namespace QuickRead.Sources
             catch (Exception ex)
             {
                 Console.WriteLine($"General Error in GetPageImagesAsync: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
             }
 
             Console.WriteLine($"Returning {pages.Count} page images");

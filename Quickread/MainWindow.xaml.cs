@@ -25,7 +25,7 @@ namespace QuickRead
             _sources = new Dictionary<string, ISourceService>
             {
                 { "Comick", new ComickService() },
-                { "MangaPark", new MangaparkService() }
+                { "MangaDX", new MangaDexService() }
             };
 
             // Placeholder-Text verstecken, wenn TextBox gefüllt ist
@@ -56,12 +56,12 @@ namespace QuickRead
         {
             if (e.Key == Key.Enter)
             {
-                SearchButton_Click(null, null);
+                SearchButton_Click(this, new RoutedEventArgs());
             }
         }
 
         private double spinnerAngle = 0;
-        private void SpinnerTimer_Tick(object sender, EventArgs e)
+        private void SpinnerTimer_Tick(object? sender, EventArgs e)
         {
             spinnerAngle += 10;
             if (spinnerAngle >= 360) spinnerAngle = 0;
@@ -84,23 +84,27 @@ namespace QuickRead
                 return;
             }
 
-            var selectedSource = ((ComboBoxItem)SourceComboBox.SelectedItem).Content.ToString();
+            var selectedSource = ((ComboBoxItem)SourceComboBox.SelectedItem)?.Content?.ToString();
+            if (string.IsNullOrEmpty(selectedSource))
+            {
+                SetStatus("Please select a valid source.");
+                return;
+            }
+
             SetStatus($"Searching for \"{query}\" in {selectedSource}...");
             ShowLoading(true);
 
             try
             {
-                if (_sources.TryGetValue(selectedSource, out var service))
+                if (_sources.TryGetValue(selectedSource!, out var service)) // "!" added to ensure non-null
                 {
                     _currentMangaList = await service.SearchMangaAsync(query);
 
-                    // Update UI on main thread
                     Dispatcher.Invoke(() =>
                     {
                         MangaList.ItemsSource = null;
                         MangaList.ItemsSource = _currentMangaList;
 
-                        // Clear chapter list
                         ChapterList.ItemsSource = null;
                         _currentChapterList.Clear();
 
@@ -123,9 +127,9 @@ namespace QuickRead
 
         private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (LanguageComboBox.SelectedItem is ComboBoxItem selected)
+            if (LanguageComboBox.SelectedItem is ComboBoxItem selected && selected.Tag is not null)
             {
-                string lang = selected.Tag.ToString();
+                string lang = selected.Tag.ToString() ?? string.Empty; // Sicherstellen, dass kein NULL-Wert zugewiesen wird
                 SetStatus($"Language changed to {selected.Content} ({lang}).");
 
                 // Filter current chapter list by language if available
@@ -148,13 +152,12 @@ namespace QuickRead
 
                 try
                 {
-                    var selectedSource = ((ComboBoxItem)SourceComboBox.SelectedItem).Content.ToString();
-                    if (_sources.TryGetValue(selectedSource, out var service))
+                    var selectedSource = ((ComboBoxItem)SourceComboBox.SelectedItem)?.Content?.ToString();
+                    if (!string.IsNullOrEmpty(selectedSource) && _sources.TryGetValue(selectedSource!, out var service)) // "!" added
                     {
                         _currentChapterList = await service.GetChaptersAsync(selectedManga);
 
-                        // Filter by selected language
-                        var selectedLang = ((ComboBoxItem)LanguageComboBox.SelectedItem).Tag.ToString();
+                        var selectedLang = ((ComboBoxItem)LanguageComboBox.SelectedItem)?.Tag?.ToString();
                         var filteredChapters = _currentChapterList.Where(c =>
                             string.IsNullOrEmpty(c.Language) || c.Language == selectedLang).ToList();
 
@@ -185,8 +188,8 @@ namespace QuickRead
 
                 try
                 {
-                    var selectedSource = ((ComboBoxItem)SourceComboBox.SelectedItem).Content.ToString();
-                    if (_sources.TryGetValue(selectedSource, out var service))
+                    var selectedSource = ((ComboBoxItem)SourceComboBox.SelectedItem)?.Content?.ToString();
+                    if (!string.IsNullOrEmpty(selectedSource) && _sources.TryGetValue(selectedSource, out var service))
                     {
                         var pageImages = await service.GetPageImagesAsync(selectedChapter);
 
@@ -206,6 +209,11 @@ namespace QuickRead
                             ShowLoading(false);
                             SetStatus("No pages found for this chapter.");
                         }
+                    }
+                    else
+                    {
+                        ShowLoading(false);
+                        SetStatus("Invalid or unknown source selected.");
                     }
                 }
                 catch (Exception ex)

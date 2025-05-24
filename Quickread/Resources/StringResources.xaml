@@ -82,7 +82,7 @@
     
     <!-- Sources -->
     <sys:String x:Key="Comick">Comick</sys:String>
-    <sys:String x:Key="MangaPark">MangaPark</sys:String>
+    <sys:String x:Key="MangaDX">MangaDX</sys:String>
     
     <!-- UI Elements -->
     <sys:String x:Key="ToggleUI">Toggle UI</sys:String>
